@@ -7,3 +7,6 @@ test:
 
 build:
 	docker build -t georot . 
+
+install:
+	uv sync
