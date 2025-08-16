@@ -1,0 +1,95 @@
+/* Import Google Font */
+:root {
+  --font-family: 'Inter', sans-serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  background-attachment: fixed;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+/* Container and Header */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+h1 {
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -1px;
+}
+
+h2 {
+  font-weight: 400;
+  color: #a7a9be;
+}
+
+/* Form and Text Areas */
+form {
+  transition: all 0.3s ease;
+}
+
+textarea {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  transition: all 0.3s ease;
+  font-family: var(--font-family);
+}
+
+textarea:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #5372f0;
+  box-shadow: 0 0 15px rgba(83, 114, 240, 0.3);
+}
+
+/* Button Styling */
+button {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  background: linear-gradient(90deg, #5372f0, #8c52ff);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  margin-top: 3rem;
+  color: #a7a9be;
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
