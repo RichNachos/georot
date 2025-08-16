@@ -4,3 +4,6 @@ run:
 
 test:
 	uv run python -m pytest tests
+
+build:
+	docker build -t georot . 
