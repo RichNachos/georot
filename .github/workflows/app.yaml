@@ -8,7 +8,7 @@ on:
 permissions:
   contents: read
   packages: write
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: make install
-            
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -49,7 +49,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: RichNachos/georot
+          images: ghcr.io/RichNachos/georot
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,enable=true,prefix=
