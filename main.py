@@ -29,7 +29,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
-# ---- TEXT TO SPEACH API ---------
+# ---- TEXT TO speech API ---------
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
@@ -52,7 +52,7 @@ def wave_file(filename: Path, pcm: bytes, channels=1, rate=24000, sample_width=2
         wf.setframerate(rate)
         wf.writeframes(pcm)
 
-def generate_speach(input_text:str) -> Path:
+def generate_speech(input_text:str) -> Path:
     response = client.models.generate_content(
         model="gemini-2.5-flash-preview-tts",
         contents=f"Say in Georgian : {input_text}",
@@ -112,7 +112,7 @@ def apply_n_prepending_rules(input_text: str) -> str:
 def transform_georgian_text(input_text: str):
     voiced_text = apply_voicing_rules(input_text)
     final_text = apply_n_prepending_rules(voiced_text)
-    file_path = generate_speach(input_text=final_text)
+    file_path = generate_speech(input_text=final_text)
     return final_text, file_path
 
 # --- API Endpoints ---
@@ -137,10 +137,10 @@ async def transform_text(text_input: TextInput):
 @app.get("/history", response_model=List[HistoryItem])
 async def get_history():
     """
-    Scans the static/to_speach directory, gets the 5 most recent .wav files,
+    Scans the static/to_speech directory, gets the 5 most recent .wav files,
     and returns them as a JSON list.
     """
-    history_dir = Path("static/to_speach")
+    history_dir = Path("static/to_speech")
     if not history_dir.exists():
         return []
 
@@ -176,5 +176,5 @@ async def get_history():
 # --- Run the Application ---
 
 if __name__ == "__main__":
-    os.makedirs("static/to_speach", exist_ok=True)
+    os.makedirs("static/to_speech", exist_ok=True)
     uvicorn.run(app, host="0.0.0.0", port=8000)
