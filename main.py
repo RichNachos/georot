@@ -9,7 +9,11 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+from dotenv import load_dotenv
 
+from google import genai
+from google.genai import types
+import wave 
 
 class TextInput(BaseModel):
     inputText: str
@@ -23,6 +27,55 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+
+
+# ---- TEXT TO SPEACH API ---------
+load_dotenv()
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+if not GOOGLE_API_KEY:
+    raise RuntimeError("GOOGLE_API_KEY is missing! Check your .env file.")
+
+client = genai.Client(api_key=GOOGLE_API_KEY)
+
+OUTPUT_DIR = Path("static/to_speach")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+def get_next_filename() -> Path:
+    """Return next incrementing filename in OUTPUT_DIR as X.wav"""
+    existing = [int(f.stem) for f in OUTPUT_DIR.glob("*.wav") if f.stem.isdigit()]
+    next_id = max(existing, default=0) + 1
+    return OUTPUT_DIR / f"{next_id}.wav"
+
+def wave_file(filename: Path, pcm: bytes, channels=1, rate=24000, sample_width=2):
+    """Write PCM data to a .wav file"""
+    with wave.open(str(filename), "wb") as wf:
+        wf.setnchannels(channels)
+        wf.setsampwidth(sample_width)
+        wf.setframerate(rate)
+        wf.writeframes(pcm)
+
+def generate_speach(input_text:str) -> Path:
+    response = client.models.generate_content(
+        model="gemini-2.5-flash-preview-tts",
+        contents=f"Say in Georgian : {input_text}",
+        config=types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name='Kore',
+                    )
+                )
+            ),
+        )
+    )
+
+    pcm_data = response.candidates[0].content.parts[0].inline_data.data
+    file_path = get_next_filename()
+    wave_file(file_path, pcm_data)
+    return file_path
 
 
 # --- Transformation Logic Functions ---
@@ -60,14 +113,11 @@ def apply_n_prepending_rules(input_text: str) -> str:
     return "".join(result)
 
 
-def transform_georgian_text(input_text: str) -> str:
-    """
-    Combines all transformation rules into a single function.
-    """
+def transform_georgian_text(input_text: str):
     voiced_text = apply_voicing_rules(input_text)
     final_text = apply_n_prepending_rules(voiced_text)
-    return final_text
-
+    file_path = generate_speach(input_text=final_text)
+    return final_text, file_path
 
 # --- API Endpoints ---
 
@@ -81,11 +131,11 @@ async def read_root(request: Request):
 
 @app.post("/transform")
 async def transform_text(text_input: TextInput):
-    """
-    Receives JSON with input text, transforms it, and returns the result.
-    """
-    transformed_text = transform_georgian_text(text_input.inputText)
-    return JSONResponse(content={"transformed_text": transformed_text})
+    transformed_text, file_path = transform_georgian_text(text_input.inputText)
+    return JSONResponse(content={
+        "transformed_text": transformed_text,
+        "audio_url": f"/{file_path}".replace("\\", "/")
+    })
 
 
 @app.get("/history", response_model=List[HistoryItem])
