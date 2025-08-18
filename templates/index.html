@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Georgian Brainrot Transformer | Slop-Powered</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='/css/style.css') }}"
+    />
+  </head>
+  <body>
+    <main class="container">
+      <div class="header-section">
+        <hgroup>
+          <h1>Georgian Brainrot Transformer</h1>
+          <h2>Harnessing Slop to seamlessly transform your text.</h2>
+        </hgroup>
+      </div>
+
+      <form id="transform-form">
+        <div class="grid">
+          <textarea
+            id="inputText"
+            name="inputText"
+            rows="12"
+            placeholder="Enter Georgian text here..."
+          ></textarea>
+
+          <div class="output-container">
+            <textarea
+              id="outputText"
+              name="outputText"
+              rows="12"
+              placeholder="Transformed text will appear here..."
+              readonly
+            ></textarea>
+
+            <div id="output-actions" class="hidden">
+              <button type="button" id="play-sound-btn" class="icon-btn" title="Play Sound">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </button>
+              <button type="button" id="download-sound-btn" class="icon-btn" title="Download WAV">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <button id="transform-btn" type="submit" class="contrast">
+          Brainrot Text
+        </button>
+      </form>
+
+      <section class="history-section">
+        <h2>Recent Generations</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Date Created</th>
+                <th class="actions-column">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body">
+              <tr>
+                <td colspan="3" class="placeholder-row">Loading recent audio files...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer>
+        <small>Powered by Your Local Slopseller</small>
+      </footer>
+    </main>
+
+    <script>
+      const transformForm = document.getElementById("transform-form");
+      const inputText = document.getElementById("inputText");
+      const outputText = document.getElementById("outputText");
+      const transformBtn = document.getElementById("transform-btn");
+      
+      const outputActions = document.getElementById("output-actions");
+      const playSoundBtn = document.getElementById("play-sound-btn");
+      const downloadSoundBtn = document.getElementById("download-sound-btn");
+
+      const historyTableBody = document.getElementById("history-table-body");
+      let currentAudioUrl = ''; 
+      let activeAudio = null;
+
+      function playAudio(url) {
+        if (!url) return; 
+
+        if (activeAudio) {
+          activeAudio.pause();
+        }
+
+        if (activeAudio && activeAudio.src.endsWith(url)) {
+            activeAudio = null; 
+            return;
+        }
+
+        activeAudio = new Audio(url);
+        activeAudio.play().catch(err => console.error("Error playing audio:", err));
+        activeAudio.addEventListener('ended', () => {
+            activeAudio = null;
+        });
+      }
+
+      async function fetchAndDisplayHistory() {
+        try {
+          const response = await fetch("/history");
+          if (!response.ok) throw new Error("Failed to fetch history");
+          const files = await response.json();
+          
+          historyTableBody.innerHTML = ""; // Clear placeholder/old data
+
+          if (files.length === 0) {
+            historyTableBody.innerHTML = `<tr><td colspan="3" class="placeholder-row">No recent files found.</td></tr>`;
+            return;
+          }
+
+          files.forEach(file => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${file.filename}</td>
+              <td>${file.date}</td>
+              <td class="actions-column">
+                <button type="button" class="icon-btn history-play-btn" title="Play ${file.filename}" data-src="${file.url}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </button>
+              </td>
+            `;
+            historyTableBody.appendChild(row);
+          });
+
+        } catch (error) {
+          console.error("Error fetching history:", error);
+          historyTableBody.innerHTML = `<tr><td colspan="3" class="placeholder-row">Could not load history.</td></tr>`;
+        }
+      }
+
+      // --- Event Listeners ---
+
+      transformForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const textToTransform = inputText.value;
+        if (!textToTransform.trim()) return;
+
+        if (activeAudio) {
+          activeAudio.pause();
+          activeAudio = null;
+        }
+        outputActions.classList.add("hidden");
+        transformBtn.disabled = true;
+        transformBtn.setAttribute("aria-busy", "true");
+        transformBtn.innerHTML = "Transforming...";
+
+        try {
+          const response = await fetch("/transform", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inputText: textToTransform }),
+          });
+          if (!response.ok) throw new Error("Request failed");
+
+          const data = await response.json();
+          outputText.value = data.transformed_text;
+          currentAudioUrl = data.audio_url; 
+          
+          if (outputText.value) {
+            outputActions.classList.remove("hidden");
+            fetchAndDisplayHistory(); 
+          }
+        } catch (error) {
+          outputText.value = "An error occurred. Please try again.";
+        } finally {
+          transformBtn.disabled = false;
+          transformBtn.removeAttribute("aria-busy");
+          transformBtn.innerHTML = "Brainrot Text";
+        }
+      });
+
+      playSoundBtn.addEventListener("click", () => {
+        playAudio(currentAudioUrl);
+      });
+      
+      historyTableBody.addEventListener("click", (event) => {
+        const playButton = event.target.closest('.history-play-btn');
+        if (playButton) {
+          const audioUrl = playButton.dataset.src;
+          playAudio(audioUrl);
+        }
+      });
+
+      downloadSoundBtn.addEventListener("click", () => {
+        if (!currentAudioUrl) return;
+        const link = document.createElement("a");
+        link.href = currentAudioUrl;
+        link.setAttribute("download", currentAudioUrl.split('/').pop() || "transformed_audio.wav");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      document.addEventListener('DOMContentLoaded', fetchAndDisplayHistory);
+    </script>
+  </body>
+</html>

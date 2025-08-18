@@ -1,7 +1,20 @@
 [project]
-name = "brainrot-georgian"
+name = "georot"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi>=0.116.1",
+    "google-genai>=1.30.0",
+    "google-generativeai>=0.8.5",
+    "jinja2>=3.1.6",
+    "pytest>=8.4.1",
+    "python-dotenv>=1.1.1",
+    "python-multipart>=0.0.20",
+    "requests>=2.32.4",
+    "uvicorn>=0.35.0",
+]
+
+[dependency-groups]
+dev = ["mypy>=1.17.1", "ruff>=0.12.9"]
