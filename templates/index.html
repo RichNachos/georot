@@ -96,10 +96,12 @@
       const downloadSoundBtn = document.getElementById("download-sound-btn");
 
       const historyTableBody = document.getElementById("history-table-body");
-
-      let currentAudioUrl = '/static/to_speach/random.wav'; 
+      let currentAudioUrl = ''; 
       let activeAudio = null;
+
       function playAudio(url) {
+        if (!url) return; 
+
         if (activeAudio) {
           activeAudio.pause();
         }
@@ -108,12 +110,14 @@
             activeAudio = null; 
             return;
         }
+
         activeAudio = new Audio(url);
         activeAudio.play().catch(err => console.error("Error playing audio:", err));
         activeAudio.addEventListener('ended', () => {
             activeAudio = null;
         });
       }
+
       async function fetchAndDisplayHistory() {
         try {
           const response = await fetch("/history");
@@ -160,6 +164,7 @@
         }
         outputActions.classList.add("hidden");
         transformBtn.disabled = true;
+        transformBtn.setAttribute("aria-busy", "true");
         transformBtn.innerHTML = "Transforming...";
 
         try {
@@ -172,6 +177,7 @@
 
           const data = await response.json();
           outputText.value = data.transformed_text;
+          currentAudioUrl = data.audio_url; 
           
           if (outputText.value) {
             outputActions.classList.remove("hidden");
@@ -181,6 +187,7 @@
           outputText.value = "An error occurred. Please try again.";
         } finally {
           transformBtn.disabled = false;
+          transformBtn.removeAttribute("aria-busy");
           transformBtn.innerHTML = "Brainrot Text";
         }
       });
@@ -198,9 +205,10 @@
       });
 
       downloadSoundBtn.addEventListener("click", () => {
+        if (!currentAudioUrl) return;
         const link = document.createElement("a");
         link.href = currentAudioUrl;
-        link.setAttribute("download", "transformed_audio.wav");
+        link.setAttribute("download", currentAudioUrl.split('/').pop() || "transformed_audio.wav");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
