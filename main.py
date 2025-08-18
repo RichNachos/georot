@@ -29,18 +29,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
-
 # ---- TEXT TO SPEACH API ---------
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-if not GOOGLE_API_KEY:
-    raise RuntimeError("GOOGLE_API_KEY is missing! Check your .env file.")
+OUTPUT_DIR = Path("static/to_speech")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 client = genai.Client(api_key=GOOGLE_API_KEY)
-
-OUTPUT_DIR = Path("static/to_speach")
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def get_next_filename() -> Path:
     """Return next incrementing filename in OUTPUT_DIR as X.wav"""
