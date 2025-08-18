@@ -34,7 +34,6 @@
         </hgroup>
       </div>
 
-      <!-- The form no longer needs action or method attributes -->
       <form id="transform-form">
         <div class="grid">
           <textarea
@@ -43,13 +42,29 @@
             rows="12"
             placeholder="Enter Georgian text here..."
           ></textarea>
-          <textarea
-            id="outputText"
-            name="outputText"
-            rows="12"
-            placeholder="Transformed text will appear here..."
-            readonly
-          ></textarea>
+
+
+          <div class="output-container">
+            <textarea
+              id="outputText"
+              name="outputText"
+              rows="12"
+              placeholder="Transformed text will appear here..."
+              readonly
+            ></textarea>
+
+            <!-- This div will hold our action icons (play, download, etc.) -->
+            <div id="output-actions" class="hidden">
+              <!-- Play Sound Button -->
+              <button id="play-sound-btn" class="icon-btn" title="Play Sound">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </button>
+              <!-- Download Sound Button -->
+              <button id="download-sound-btn" class="icon-btn" title="Download WAV">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </button>
+            </div>
+          </div>
         </div>
         <button id="transform-btn" type="submit" class="contrast">
           Brainrot Text
@@ -62,55 +77,75 @@
     </main>
 
     <!-- JavaScript for Asynchronous Request -->
-    <script>
-      const transformForm = document.getElementById("transform-form");
-      const inputText = document.getElementById("inputText");
-      const outputText = document.getElementById("outputText");
-      const transformBtn = document.getElementById("transform-btn");
+      <script>
+        const transformForm = document.getElementById("transform-form");
+        const inputText = document.getElementById("inputText");
+        const outputText = document.getElementById("outputText");
+        const transformBtn = document.getElementById("transform-btn");
+        
+        const outputActions = document.getElementById("output-actions");
+        const playSoundBtn = document.getElementById("play-sound-btn");
+        const downloadSoundBtn = document.getElementById("download-sound-btn");
 
-      transformForm.addEventListener("submit", async (event) => {
-        // Prevent the default form submission (page refresh)
-        event.preventDefault();
+        let currentAudioUrl = '/static/to_speach/random.wav'; 
 
-        const originalButtonText = transformBtn.innerHTML;
-        const textToTransform = inputText.value;
+        transformForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
 
-        // Basic validation: do nothing if input is empty
-        if (!textToTransform.trim()) {
-          return;
-        }
+          const originalButtonText = transformBtn.innerHTML;
+          const textToTransform = inputText.value;
+          
+          outputActions.classList.add("hidden");
 
-        try {
-          // Disable the button and show a loading state
-          transformBtn.disabled = true;
-          transformBtn.innerHTML = "Transforming...";
-
-          // Send the POST request to the backend
-          const response = await fetch("/transform", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ inputText: textToTransform }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          if (!textToTransform.trim()) {
+            return;
           }
 
-          const data = await response.json();
+          try {
+            transformBtn.disabled = true;
+            transformBtn.innerHTML = "Transforming...";
 
-          // Update the output textarea with the transformed text
-          outputText.value = data.transformed_text;
-        } catch (error) {
-          console.error("Error during transformation:", error);
-          outputText.value = "An error occurred. Please try again.";
-        } finally {
-          // Re-enable the button and restore its text
-          transformBtn.disabled = false;
-          transformBtn.innerHTML = originalButtonText;
-        }
-      });
-    </script>
+            const response = await fetch("/transform", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ inputText: textToTransform }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            outputText.value = data.transformed_text;
+            
+            if(outputText.value) {
+              outputActions.classList.remove("hidden");
+            }
+
+          } catch (error) {
+            console.error("Error during transformation:", error);
+            outputText.value = "An error occurred. Please try again.";
+          } finally {
+            transformBtn.disabled = false;
+            transformBtn.innerHTML = originalButtonText;
+          }
+        });
+
+        playSoundBtn.addEventListener("click", () => {
+          const audio = new Audio(currentAudioUrl);
+          audio.play().catch(error => {
+            console.error("Error playing sound:", error);
+          });
+        });
+
+        downloadSoundBtn.addEventListener("click", () => {
+          const link = document.createElement('a');
+          link.href = currentAudioUrl;
+          link.setAttribute('download', 'transformed_audio.wav');
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+      </script>
   </body>
 </html>

@@ -1,18 +1,31 @@
-/* Import Google Font */
+/* --- VARIABLES & BASE STYLES --- */
 :root {
   --font-family: 'Inter', sans-serif;
+  --primary-glow: rgba(83, 114, 240, 0.5);
+  --secondary-glow: rgba(140, 82, 255, 0.4);
+  --bg-dark-start: #0d1117;
+  --bg-dark-end: #161b22;
+  --text-primary: #e6edf3;
+  --text-secondary: #7d8590;
+  --border-color: rgba(255, 255, 255, 0.1);
 }
 
 body {
   font-family: var(--font-family);
-  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  background-color: var(--bg-dark-start);
+  background-image: radial-gradient(circle at 1px 1px, var(--bg-dark-end) 1px, transparent 0);
+  background-size: 20px 20px;
   background-attachment: fixed;
-  color: #e0e0e0;
+  color: var(--text-primary);
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Container and Header */
+/* --- CONTAINER & HEADER --- */
 .container {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
@@ -26,37 +39,79 @@ body {
 
 h1 {
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: -1px;
+  background: linear-gradient(90deg, #8c52ff, #5372f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 h2 {
   font-weight: 400;
-  color: #a7a9be;
+  color: var(--text-secondary);
 }
 
-/* Form and Text Areas */
-form {
-  transition: all 0.3s ease;
-}
-
+/* --- TEXT AREAS & OUTPUT CONTAINER --- */
 textarea {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--text-primary);
   transition: all 0.3s ease;
   font-family: var(--font-family);
+  padding: 1rem; 
+  resize: vertical; 
 }
 
 textarea:focus {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
   border-color: #5372f0;
-  box-shadow: 0 0 15px rgba(83, 114, 240, 0.3);
+  box-shadow: 0 0 15px var(--primary-glow);
 }
 
-/* Button Styling */
-button {
+.output-container {
+  position: relative;
+}
+
+/* --- NEW ICON BUTTONS STYLING --- */
+#output-actions {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  gap: 0.5rem; 
+  animation: popIn 0.4s ease-out forwards;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+  padding: 0;
+}
+
+.icon-btn svg {
+  width: 20px; /* Control icon size */
+  height: 20px;
+}
+
+.icon-btn:hover {
+  background-color: #5372f0;
+  color: white;
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* --- MAIN TRANSFORM BUTTON --- */
+#transform-btn {
   width: 100%;
   padding: 1rem;
   font-size: 1.1rem;
@@ -68,28 +123,37 @@ button {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 1rem;
+  position: relative; /* Needed for the loader */
 }
 
-button:hover {
+#transform-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 20px var(--secondary-glow);
 }
 
-/* Footer */
+#transform-btn:disabled {
+  cursor: wait;
+  background: #555;
+}
+
+/* --- UTILITIES & ANIMATIONS --- */
+.hidden {
+  display: none !important; 
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --- FOOTER --- */
 footer {
   text-align: center;
   margin-top: 3rem;
-  color: #a7a9be;
-}
-
-/* Keyframe Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  color: var(--text-secondary);
 }
